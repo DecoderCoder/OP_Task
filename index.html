@@ -298,7 +298,7 @@
         log(0, 0, input_array, 'blank');
         view_log();
         log(0, 0, result, 'blank');
-        sameWidth('h3.font-monospace');
+        $('h3.font-monospace');
         let render_end_time = performance.now();
         $('.render-time').text((render_end_time - render_start_time).toString().substring(0, 10));
     }
