@@ -12,29 +12,177 @@
     .header {
         padding: 10px;
     }
+
+    .log-list {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .log-list canvas {
+        width: 100%;
+        /*background: red;*/
+        height: 34px;
+    }
+
+    footer{
+        background: rgb(255,255,255);
+        background: linear-gradient(0, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 70%, rgba(0,212,255,0) 100%);
+    }
 </style>
 <div class="container">
+    <div class="row text-center">
+        <h1>Sort Visualizer</h1>
+    </div>
+    <div class="row p-2">
+        <div class="input-group col-12">
+            <span class="input-group-text">Enter array</span>
+            <input class="form-control" id="input-array" placeholder="1,2,3,4 or 1, 2, 3, 4 etc.">
+            <button class="btn btn-outline-secondary" onclick="push_random();">Random</button>
+        </div>
+    </div>
     <div class="header col-12 btn-group" role="group">
         <button class="btn btn-secondary" data-tab="bubble">Bubble sort</button>
         <button class="btn btn-secondary" data-tab="shaker">Shaker sort</button>
         <button class="btn btn-secondary" data-tab="insertion">Insertion sort</button>
     </div>
-    <div class="row">
-        <div class="input-group col-12">
-            <span class="input-group-text">Enter array</span>
-            <input class="form-control" id="input-array" placeholder="1,2,3,4 or 1, 2, 3, 4 etc.">
-            <button class="btn btn-outline-secondary">Random</button>
+    <div class="tabs">
 
-        </div>
     </div>
+    <div class="log">
+        <ul class="log-list col-12 font-monospace">
+            <li class="col-12">
+                <!--                <div class="col-12 d-flex justify-content-between">-->
+                <!--                    <span class="btn btn-success p-1 p-sm-2" id="step-1-btn-1">12</span>-->
+                <!--                    <span class="btn btn-secondary p-1 p-sm-2">12</span>-->
+                <!--                    <span class="btn btn-success p-1 p-sm-2" id="step-1-btn-3">12</span>-->
+                <!--                    <span class="btn btn-secondary p-1 p-sm-2">12</span>-->
+                <!--                    <span class="btn btn-secondary p-1 p-sm-2">12</span>-->
+                <!--                    <span class="btn btn-secondary p-1 p-sm-2">12</span>-->
+                <!--                    <span class="btn btn-secondary p-1 p-sm-2">12</span>-->
+                <!--                </div>-->
+                <!--                <canvas id="step-1">-->
+
+                <!--                </canvas>-->
+            </li>
+        </ul>
+    </div>
+    <footer class="fixed-bottom col-12 p-2 text-center">
+        <button class="btn btn-primary col-12 col-sm-4 col-lg-2" onclick="sort();">Sort</button>
+    </footer>
+    <div class="p-2" style="height: 34px;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
         integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
         crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
 <script>
+    let input_array;
+    let step;
+    let log_list;
 
+    function swap(index1, index2, array) {
+        let i1 = array[index1];
+        array[index1] = array[index2];
+        array[index2] = i1;
+        log_list.push({i1: index1, i2: index2, a: JSON.stringify(array)});
+        return array;
+    }
+
+    function log(index1, index2, array) {
+        let $log_list = $('.log-list');
+        let html = '<li class="col-12"><div class="col-12 d-flex justify-content-between"><h3>' + step + '. </h3>';
+
+        for (let i = 0; i < array.length; i++) {
+            html += '<span class="btn btn-outline-secondary p-1 p-sm-2" id="step-' + step + '-btn-' + i + '">' + array[i] + '</span>';
+        }
+        html += '</div>';
+        html += '<canvas id="step-' + step + '"></canvas>';
+        html += '</li>';
+        $log_list.append(html);
+
+        if (index1)
+            $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
+        if (index2)
+            $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').addClass('btn-success');
+
+        let canvas = document.querySelector('#step-' + step);
+        canvas.height = canvas.offsetHeight;
+        canvas.width = canvas.offsetWidth;
+
+        let cX = canvas.offsetLeft;
+        let cY = canvas.offsetTop;
+
+        if (canvas.getContext) {
+            let ctx = canvas.getContext('2d');
+            let btn1 = document.querySelector('#step-' + step + '-btn-' + index1);
+            let btn2 = document.querySelector('#step-' + step + '-btn-' + index2);
+
+            ctx.beginPath();
+            ctx.moveTo(btn1.offsetLeft - cX + btn1.offsetWidth / 2, 5);
+            ctx.lineTo(btn1.offsetLeft - cX + btn1.offsetWidth / 2, 5);
+            ctx.lineTo(btn1.offsetLeft - cX + btn1.offsetWidth / 2, 20);
+            ctx.lineTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2, 20);
+            ctx.lineTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2, 5);
+            ctx.moveTo(0, 0);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2, 10);
+            ctx.lineTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2 - 3, 10);
+            ctx.lineTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2, 5);
+            ctx.lineTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2 + 3, 10);
+            ctx.closePath();
+            ctx.fill();
+        }
+        step++;
+    }
+
+    function view_log() {
+        log_list.forEach((x) => {
+            log(x.i1, x.i2, JSON.parse(x.a));
+        });
+    }
+
+    function push_random() {
+        let array = [];
+        for (let i = 0; i < 10; i++) {
+            array.push(Math.round(Math.random() * 100))
+        }
+        $('#input-array').val(array.join(','));
+    }
+
+    function sort() {
+        $('.log-list').html('');
+        input_array = $('#input-array').val().split(',').map(x => parseInt(x));
+        step = 1;
+        log_list = [];
+        sort_bubble(input_array);
+        view_log();
+    }
+
+    function sort_bubble(array) {
+        let lastIndex = array.length - 1;
+        let i = 0;
+        let swapped;
+        do {
+            swapped = false;
+            for (i = 0; i < lastIndex; i++) {
+                let left = array[i];
+                let right = array[i + 1];
+                if (left > right) {
+                    array = swap(i, i + 1, array);
+                    swapped = true;
+                }
+                if (i >= lastIndex) {
+                    lastIndex = i - 1;
+                }
+            }
+        } while (swapped);
+        console.log(array);
+    }
 </script>
 </body>
 </html>
