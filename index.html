@@ -25,6 +25,10 @@
         height: 34px;
     }
 
+    /*.log-list li:nth-child(even){*/
+    /*    background: rgba(0, 0, 0, .12);*/
+    /*}*/
+
     footer {
         background: rgb(255, 255, 255);
         background: linear-gradient(0, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.5) 70%, rgba(0, 212, 255, 0) 100%);
@@ -139,10 +143,6 @@
         array[index1] = array[index2];
         array[index2] = i1;
 
-        // let i1 = array[index1];
-        // array[index1] = array[index2];
-        // array[index2] = i1;
-
         return array;
     }
 
@@ -172,12 +172,6 @@
                 });
                 break;
             case 'insertion_s':
-                if (index1)
-                    $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
-                if (index2)
-                    $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').addClass('btn-success');
-
-                console.log(index1 + '  ' + index2);
                 if (index1 + 1 != index2)
                     $('span[id^="step-' + step + '"]:contains(\'' + details.current + '\')').map((i, item) => {
                         if (!found && item.innerText == details.current) {
@@ -185,6 +179,10 @@
                             found = true;
                         }
                     });
+                if (index1)
+                    $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').removeClass('btn-danger').addClass('btn-success');
+                if (index2)
+                    $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').removeClass('btn-danger').addClass('btn-success');
                 break;
             default:
                 if (index1)
@@ -333,15 +331,10 @@
             let j = i - 1;
             while ((j > -1) && (current < array[j])) {
                 array = swap(j + 1, j, array, 'insertion_s', {current: current});
-                //array[j + 1] = array[j];
                 j--;
             }
-            //if (j + 1 !== i)
             swap(j + 1, i, array, 'insertion', {current: current});
-            //array[j + 1] = current;
-            //array[j + 1] = current;
         }
-        console.log(array);
     }
 </script>
 </body>
