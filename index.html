@@ -29,12 +29,16 @@
         background: rgb(255, 255, 255);
         background: linear-gradient(0, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.5) 70%, rgba(0, 212, 255, 0) 100%);
     }
+
+    .bench span {
+        white-space: pre;
+    }
 </style>
 <div class="container">
     <div class="row text-center">
         <h1>Sort Visualizer</h1>
-        <div class="text-start">
-            <span><strong>Sort time: </strong><span class="benchmark-time">0</span> ms.</span><br>
+        <div class="text-start font-monospace bench">
+            <span><strong>Sort time:   </strong><span class="benchmark-time">0</span> ms.</span><br>
             <span><strong>Render time: </strong><span class="render-time">0</span> ms.</span>
         </div>
     </div>
@@ -60,7 +64,7 @@
 
     </div>
     <div class="log">
-        <ul class="log-list col-12 font-monospace">
+        <ul class="log-list col-12">
             <li class="col-12">
                 <!--                <div class="col-12 d-flex justify-content-between">-->
                 <!--                    <span class="btn btn-success p-1 p-sm-2" id="step-1-btn-1">12</span>-->
@@ -101,16 +105,48 @@
         $('[data-type="' + type + '"]').removeClass('btn-secondary').addClass('btn-primary');
     }
 
-    function swap(index1, index2, array) {
-        log_list.push({i1: index1, i2: index2, a: JSON.stringify(array)});
+    function swap(index1, index2, array, type, details) { // array[1] = array[2]
+        switch (type) {
+            // case 'bubble':
+            //     log_list.push({i1: index1, i2: index2, a: JSON.stringify(array), type: 'bubble'});
+            //     break;
+            case 'insertion':
+                log_list.push({
+                    i1: index1,
+                    i2: index2,
+                    a: JSON.stringify(array),
+                    type: 'insertion',
+                    details: {current: details.current}
+                });
+                array[index1] = details.current;
+                return array;
+                break;
+            case 'insertion_s':
+                log_list.push({
+                    i1: index1,
+                    i2: index2,
+                    a: JSON.stringify(array),
+                    type: 'insertion_s',
+                    details: {current: details.current}
+                });
+                break;
+            default:
+                log_list.push({i1: index1, i2: index2, a: JSON.stringify(array), type: 'default'});
+                break;
+        }
+
         let i1 = array[index1];
         array[index1] = array[index2];
         array[index2] = i1;
 
+        // let i1 = array[index1];
+        // array[index1] = array[index2];
+        // array[index2] = i1;
+
         return array;
     }
 
-    function log(index1, index2, array) {
+    function log(index1, index2, array, type, details) {
         let $log_list = $('.log-list');
         let html = '<li class="col-12"><div class="col-12 d-flex justify-content-between"><h3>' + step + '. </h3>';
 
@@ -123,11 +159,46 @@
         $log_list.append(html);
         sameWidth('.log-list span.num');
 
+        let found = false;
+        switch (type) {
+            case 'insertion':
+                if (index1)
+                    $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
+                $('span[id^="step-' + step + '"]:contains(\'' + details.current + '\')').map((i, item) => {
+                    if (!found && item.innerText == details.current) {
+                        $(item).removeClass('btn-outline-secondary').addClass('btn-danger');
+                        found = true;
+                    }
+                });
+                break;
+            case 'insertion_s':
+                if (index1)
+                    $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
+                if (index2)
+                    $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').addClass('btn-success');
 
-        if (index1)
-            $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
-        if (index2)
-            $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').addClass('btn-success');
+                console.log(index1 + '  ' + index2);
+                if (index1 + 1 != index2)
+                    $('span[id^="step-' + step + '"]:contains(\'' + details.current + '\')').map((i, item) => {
+                        if (!found && item.innerText == details.current) {
+                            $(item).removeClass('btn-outline-secondary').addClass('btn-danger');
+                            found = true;
+                        }
+                    });
+                break;
+            default:
+                if (index1)
+                    $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
+                if (index2)
+                    $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').addClass('btn-success');
+                break;
+        }
+
+        if (index1 === index2) {
+            step++;
+            return;
+        }
+
 
         let canvas = document.querySelector('#step-' + step);
         canvas.height = canvas.offsetHeight;
@@ -150,6 +221,13 @@
             ctx.moveTo(0, 0);
             ctx.closePath();
             ctx.stroke();
+
+            if (type === 'insertion') {
+                step++;
+                return;
+            }
+
+
             ctx.beginPath();
             ctx.moveTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2, 10);
             ctx.lineTo(btn2.offsetLeft - cX + btn2.offsetWidth / 2 - 3, 10);
@@ -172,7 +250,7 @@
 
     function view_log() {
         log_list.forEach((x) => {
-            log(x.i1, x.i2, JSON.parse(x.a));
+            log(x.i1, x.i2, JSON.parse(x.a), x.type, x.details ?? null);
         });
     }
 
@@ -199,14 +277,18 @@
                 sort_selection(input_array);
                 break;
             }
+            case "insertion": {
+                sort_insertion(input_array);
+                break;
+            }
         }
         let sort_end_time = performance.now();
-        $('.benchmark-time').text(sort_end_time - sort_start_time);
+        $('.benchmark-time').text((sort_end_time - sort_start_time).toString().substring(0, 10));
         let render_start_time = performance.now();
         view_log();
         let render_end_time = performance.now();
 
-        $('.render-time').text(render_end_time - render_start_time);
+        $('.render-time').text((render_end_time - render_start_time).toString().substring(0, 10));
     }
 
     function sort_bubble(array) {
@@ -230,8 +312,6 @@
     }
 
     function sort_selection(array) {
-        console.log(array);
-
         for (let i = 0; i < array.length; i++) {
             let min = array[i];
             let minIndex = i;
@@ -243,6 +323,23 @@
             }
             if (minIndex !== i)
                 array = swap(i, minIndex, array);
+        }
+    }
+
+    function sort_insertion(array) {
+        let length = array.length;
+        for (let i = 1; i < length; i++) {
+            let current = array[i];
+            let j = i - 1;
+            while ((j > -1) && (current < array[j])) {
+                array = swap(j + 1, j, array, 'insertion_s', {current: current});
+                //array[j + 1] = array[j];
+                j--;
+            }
+            //if (j + 1 !== i)
+            swap(j + 1, i, array, 'insertion', {current: current});
+            //array[j + 1] = current;
+            //array[j + 1] = current;
         }
         console.log(array);
     }
