@@ -84,10 +84,11 @@
     let log_list;
 
     function swap(index1, index2, array) {
+        log_list.push({i1: index1, i2: index2, a: JSON.stringify(array)});
         let i1 = array[index1];
         array[index1] = array[index2];
         array[index2] = i1;
-        log_list.push({i1: index1, i2: index2, a: JSON.stringify(array)});
+
         return array;
     }
 
