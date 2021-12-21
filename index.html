@@ -16,6 +16,7 @@
     .log-list {
         list-style: none;
         padding-left: 0;
+        overflow-x: auto;
     }
 
     .log-list canvas {
@@ -24,26 +25,36 @@
         height: 34px;
     }
 
-    footer{
-        background: rgb(255,255,255);
-        background: linear-gradient(0, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 70%, rgba(0,212,255,0) 100%);
+    footer {
+        background: rgb(255, 255, 255);
+        background: linear-gradient(0, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.5) 70%, rgba(0, 212, 255, 0) 100%);
     }
 </style>
 <div class="container">
     <div class="row text-center">
         <h1>Sort Visualizer</h1>
+        <div class="text-start">
+            <span><strong>Sort time: </strong><span class="benchmark-time">0</span> ms.</span><br>
+            <span><strong>Render time: </strong><span class="render-time">0</span> ms.</span>
+        </div>
     </div>
     <div class="row p-2">
         <div class="input-group col-12">
             <span class="input-group-text">Enter array</span>
             <input class="form-control" id="input-array" placeholder="1,2,3,4 or 1, 2, 3, 4 etc.">
-            <button class="btn btn-outline-secondary" onclick="push_random();">Random</button>
+            <button class="btn btn-outline-secondary  shadow-sm" onclick="push_random();">Random</button>
         </div>
     </div>
     <div class="header col-12 btn-group" role="group">
-        <button class="btn btn-secondary" data-tab="bubble">Bubble sort</button>
-        <button class="btn btn-secondary" data-tab="shaker">Shaker sort</button>
-        <button class="btn btn-secondary" data-tab="insertion">Insertion sort</button>
+        <button class="btn shadow-sm btn-primary" data-type="bubble" onclick="change_sort(this.dataset.type);">Bubble
+            sort
+        </button>
+        <button class="btn shadow-sm btn-secondary" data-type="selection" onclick="change_sort(this.dataset.type);">
+            Selection sort
+        </button>
+        <button class="btn shadow-sm btn-secondary" data-type="insertion" onclick="change_sort(this.dataset.type);">
+            Insertion sort
+        </button>
     </div>
     <div class="tabs">
 
@@ -82,6 +93,13 @@
     let input_array;
     let step;
     let log_list;
+    let sort_type = 'bubble';
+
+    function change_sort(type) {
+        sort_type = type;
+        $('[data-type]').addClass('btn-secondary').removeClass('btn-primary');
+        $('[data-type="' + type + '"]').removeClass('btn-secondary').addClass('btn-primary');
+    }
 
     function swap(index1, index2, array) {
         log_list.push({i1: index1, i2: index2, a: JSON.stringify(array)});
@@ -97,12 +115,14 @@
         let html = '<li class="col-12"><div class="col-12 d-flex justify-content-between"><h3>' + step + '. </h3>';
 
         for (let i = 0; i < array.length; i++) {
-            html += '<span class="btn btn-outline-secondary p-1 p-sm-2" id="step-' + step + '-btn-' + i + '">' + array[i] + '</span>';
+            html += '<span class="num btn btn-outline-secondary p-1 p-sm-2 shadow-sm" disabled id="step-' + step + '-btn-' + i + '">' + array[i] + '</span>';
         }
         html += '</div>';
         html += '<canvas id="step-' + step + '"></canvas>';
         html += '</li>';
         $log_list.append(html);
+        sameWidth('.log-list span.num');
+
 
         if (index1)
             $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
@@ -141,6 +161,15 @@
         step++;
     }
 
+    function sameWidth(selector) {
+        let maxWidth = 0;
+        $(selector).map((x, item) => {
+            if (item.offsetWidth > maxWidth)
+                maxWidth = item.offsetWidth;
+        });
+        $(selector).css('width', maxWidth + 'px');
+    }
+
     function view_log() {
         log_list.forEach((x) => {
             log(x.i1, x.i2, JSON.parse(x.a));
@@ -149,7 +178,7 @@
 
     function push_random() {
         let array = [];
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < $('.container').width() / 60; i++) {
             array.push(Math.round(Math.random() * 100))
         }
         $('#input-array').val(array.join(','));
@@ -160,8 +189,24 @@
         input_array = $('#input-array').val().split(',').map(x => parseInt(x));
         step = 1;
         log_list = [];
-        sort_bubble(input_array);
+        let sort_start_time = performance.now();
+        switch (sort_type) {
+            case "bubble": {
+                sort_bubble(input_array);
+                break;
+            }
+            case "selection": {
+                sort_selection(input_array);
+                break;
+            }
+        }
+        let sort_end_time = performance.now();
+        $('.benchmark-time').text(sort_end_time - sort_start_time);
+        let render_start_time = performance.now();
         view_log();
+        let render_end_time = performance.now();
+
+        $('.render-time').text(render_end_time - render_start_time);
     }
 
     function sort_bubble(array) {
@@ -182,6 +227,23 @@
                 }
             }
         } while (swapped);
+    }
+
+    function sort_selection(array) {
+        console.log(array);
+
+        for (let i = 0; i < array.length; i++) {
+            let min = array[i];
+            let minIndex = i;
+            for (let s = i; s < array.length; s++) {
+                if (array[s] < min) {
+                    min = array[s];
+                    minIndex = s;
+                }
+            }
+            if (minIndex !== i)
+                array = swap(i, minIndex, array);
+        }
         console.log(array);
     }
 </script>
