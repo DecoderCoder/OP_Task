@@ -147,8 +147,11 @@
     }
 
     function log(index1, index2, array, type, details) {
+        let prev_step = step;
+        if(type === 'blank')
+            step = Math.round(Math.random() * 1000);
         let $log_list = $('.log-list');
-        let html = '<li class="col-12"><div class="col-12 d-flex justify-content-between"><h3>' + step + '. </h3>';
+        let html = '<li class="col-12"><div class="col-12 d-flex justify-content-between"><h3 class="font-monospace">' + (type === 'blank' ? '#' : step) + '. </h3>';
 
         for (let i = 0; i < array.length; i++) {
             html += '<span class="num btn btn-outline-secondary p-1 p-sm-2 shadow-sm" disabled id="step-' + step + '-btn-' + i + '">' + array[i] + '</span>';
@@ -161,19 +164,20 @@
 
         let found = false;
         switch (type) {
-            case 'insertion':
+            case 'insertion': {
                 if (index1)
                     $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
-                $('span[id^="step-' + step + '"]:contains(\'' + details.current + '\')').map((i, item) => {
+                $('span[id^="step-' + step + '-btn-"]:contains(\'' + details.current + '\')').map((i, item) => {
                     if (!found && item.innerText == details.current) {
-                        $(item).removeClass('btn-outline-secondary').addClass('btn-danger');
+                        //$(item).removeClass('btn-outline-secondary').addClass('btn-danger');
                         found = true;
                     }
                 });
                 break;
-            case 'insertion_s':
+            }
+            case 'insertion_s': {
                 if (index1 + 1 != index2)
-                    $('span[id^="step-' + step + '"]:contains(\'' + details.current + '\')').map((i, item) => {
+                    $('span[id^="step-' + step + '-btn-"]:contains(\'' + details.current + '\')').map((i, item) => {
                         if (!found && item.innerText == details.current) {
                             $(item).removeClass('btn-outline-secondary').addClass('btn-danger');
                             found = true;
@@ -184,15 +188,22 @@
                 if (index2)
                     $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').removeClass('btn-danger').addClass('btn-success');
                 break;
-            default:
+            }
+            case 'blank':
+                step = prev_step;
+                return;
+                break;
+            default: {
                 if (index1)
                     $('#step-' + step + '-btn-' + index1).removeClass('btn-outline-secondary').addClass('btn-success');
                 if (index2)
                     $('#step-' + step + '-btn-' + index2).removeClass('btn-outline-secondary').addClass('btn-success');
                 break;
+            }
+
         }
 
-        if (index1 === index2) {
+        if (index1 === index2 || type === 'blank') {
             step++;
             return;
         }
@@ -265,27 +276,30 @@
         input_array = $('#input-array').val().split(',').map(x => parseInt(x));
         step = 1;
         log_list = [];
+        let result;
         let sort_start_time = performance.now();
         switch (sort_type) {
             case "bubble": {
-                sort_bubble(input_array);
+                result = sort_bubble(input_array);
                 break;
             }
             case "selection": {
-                sort_selection(input_array);
+                result = sort_selection(input_array);
                 break;
             }
             case "insertion": {
-                sort_insertion(input_array);
+                result = sort_insertion(input_array);
                 break;
             }
         }
         let sort_end_time = performance.now();
         $('.benchmark-time').text((sort_end_time - sort_start_time).toString().substring(0, 10));
         let render_start_time = performance.now();
+        log(0, 0, input_array, 'blank');
         view_log();
+        log(0, 0, result, 'blank');
+        $('h3.font-monospace');
         let render_end_time = performance.now();
-
         $('.render-time').text((render_end_time - render_start_time).toString().substring(0, 10));
     }
 
@@ -307,6 +321,7 @@
                 }
             }
         } while (swapped);
+        return array;
     }
 
     function sort_selection(array) {
@@ -322,6 +337,7 @@
             if (minIndex !== i)
                 array = swap(i, minIndex, array);
         }
+        return array;
     }
 
     function sort_insertion(array) {
@@ -335,6 +351,7 @@
             }
             swap(j + 1, i, array, 'insertion', {current: current});
         }
+        return array;
     }
 </script>
 </body>
