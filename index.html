@@ -149,7 +149,7 @@
     function log(index1, index2, array, type, details) {
         let prev_step = step;
         if(type === 'blank')
-            step = Math.round(Math.random() * 1000);
+            step = Math.round(10000 + Math.random() * 5000);
         let $log_list = $('.log-list');
         let html = '<li class="col-12"><div class="col-12 d-flex justify-content-between"><h3 class="font-monospace">' + (type === 'blank' ? '#' : step) + '. </h3>';
 
